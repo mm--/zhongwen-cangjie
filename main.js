@@ -222,5 +222,13 @@ var zhongwenMain = {
 
         return this.dict.wordSearch(text);
 
+    },
+
+    cangjieSearch: function(character) {
+	var start = this.dict.cangjieIndex.indexOf(character);
+	var end = this.dict.cangjieIndex.indexOf("\n", start);
+	var entry = this.dict.cangjieIndex.substring(start, end);
+	return entry.match(/^(.),(.*)$/)[2];
     }
+
 };

@@ -67,7 +67,7 @@ var zhongwenContent = {
             document.addEventListener('DOMNodeInserted', this.onDOMNodeInserted)
         }
     },
-    
+
     onDOMNodeInserted: function(ev) {
         if (ev.target.nodeName == 'IFRAME') {
             chrome.extension.sendRequest({
@@ -344,7 +344,7 @@ var zhongwenContent = {
                 }
                 break;
             case 82:        // r
-                
+
                 var entries = [];
                 for (var j = 0; j < this.lastFound.length; j++) {
                     var entry = {};
@@ -354,21 +354,21 @@ var zhongwenContent = {
                     entry.definition = this.lastFound[j][3];
                     entries.push(entry);
                 }
-                
+
                 chrome.extension.sendRequest({
                     "type": "add",
                     "entries": entries
                 });
-                
+
                 this.showPopup("Added to word list.<p>Press Alt+W to open word list.", null, -1, -1);
 
                 break;
-                
+
             case 83:        // s
                 if (this.isVisible()) {
 
                     // http://www.skritter.com/vocab/api/add?from=Chrome&lang=zh&word=浏览&trad=瀏 覽&rdng=liú lǎn&defn=to skim over; to browse
-                
+
                     var skritter = 'http://www.skritter.com';
                     if (window.zhongwen.config.skritterTLD == 'cn') {
                         skritter = 'http://www.skritter.cn';
@@ -499,7 +499,7 @@ var zhongwenContent = {
                     });
                 }
                 break;
-            case 55:     // 7
+            case 56:     // 8
                 if (ev.altKey) {
                     sel = encodeURIComponent(
                         window.getSelection().toString());
@@ -513,11 +513,33 @@ var zhongwenContent = {
                     });
                 }
                 break;
+            case 55:     // 7
+                if (ev.altKey) {
+                    sel = encodeURIComponent(
+                        window.getSelection().toString());
+
+                    // http://test.2u4u.com.cn/online/online_dict_new.php?lang=en&word=%E8%AF%8D%E5%85%B8
+		    // var audio = 'http://translate.google.com/translate_tts?ie=UTF-8&q=' + sel + '&tl=ar';
+		    var audiourl = "http://www.ispeech.org/p/generic/getaudio?text=" + sel + "&voice=chchinesefemale&speed=0&action=convert";
+		    // var audiourl = 'http://translate.google.com/translate_tts?ie=UTF-8&q=' + sel + '&tl=zh-CN';
+		    var audio = new Audio(audiourl);
+		    audio.play();
+
+		    // console.log('Getting "' + window.getSelection().toString() + '"');
+		    // audiourl = "data:text/html,<script>var audio = new Audio(\"" + audiourl + "\"); audio.play();</script>";
+		    // chrome.extension.sendRequest({
+                    //     type: 'open',
+		    // 	url: audiourl
+		    // });
+		    // new Audio(url);
+		    // audio.play();
+                }
+                break;
             default:
                 return;
         }
 
-        if (ev.keyCode != 83 && ev.keyCode != 84 && ev.keyCode != 87 && 
+        if (ev.keyCode != 83 && ev.keyCode != 84 && ev.keyCode != 87 &&
             (ev.keyCode < 49 || 57 < ev.keyCode)) {
             // don't do this for opening a new Skritter, Tatoeba or dictionary tab,
             // or the wordlist, because onKeyUp won't be called
@@ -732,9 +754,9 @@ var zhongwenContent = {
 
     makeDiv: function(input) {
         var div = document.createElement('div');
-        
+
         div.id = '_zhongwenDiv';
-        
+
         var text;
         if (input.value) {
             text = input.value;
@@ -752,10 +774,10 @@ var zhongwenContent = {
         div.style.position = "absolute";
         div.style.zIndex = 7000;
         $(div).offset({
-            top: $(input).offset().top, 
+            top: $(input).offset().top,
             left: $(input).offset().left
         })
-		
+
         return div;
     },
 
@@ -772,23 +794,23 @@ var zhongwenContent = {
             var div = document.getElementById('_zhongwenDiv');
 
             if (ev.altKey) {
-                
+
                 if (!div && (ev.target.nodeName == 'TEXTAREA' || ev.target.nodeName == 'INPUT' ||
                     ev.target.nodeName == 'IFRAME')) {
-                
+
                     div = zhongwenContent.makeDiv(ev.target);
                     document.body.appendChild(div);
                     div.scrollTop = ev.target.scrollTop;
                     div.scrollLeft = ev.target.scrollLeft;
-                
+
                 }
-                
+
             } else {
-                
+
                 if (div) {
                     document.body.removeChild(div);
                 }
-                
+
             }
 
         }
@@ -818,7 +840,7 @@ var zhongwenContent = {
             rp = this.findNextTextNode(rp.parentNode, rp);
             ro = 0;
         }
-        
+
         // The case where the text before div is empty.
         if(rp && rp.parentNode != ev.target) {
             rp = zhongwenContent.findNextTextNode(rp.parentNode, rp);
@@ -909,6 +931,33 @@ var zhongwenContent = {
         this.showPopup("Copied to clipboard", null, -1, -1);
     },
 
+    cangjieCodeTranslate : function(str) {
+	var retme = [];
+	for (var i = 0, len = str.length; i < len; i++) {
+	    var cj = this.cangjieMap[str[i]];
+	    if(cj)
+		retme.push(this.cangjieMap[str[i]]);
+	    else
+		retme.push(str[i]);
+	}
+	return retme.join("");
+    },
+
+    cangjieStr: function(cangjiePartialMap, str) {
+	var retme = [];
+	var cjret = [];
+	for (var i = 0, len = str.length; i < len; i++) {
+	    var c = str[i];
+	    var cj = cangjiePartialMap[c];
+	    var cjtrans = this.cangjieCodeTranslate(cj);
+	    if(cj)
+		retme.push(cj);
+	    if(cjtrans)
+		cjret.push(cjtrans);
+	}
+	return [retme.join(","), cjret.join(",")];
+    },
+
     makeHtml: function(entry, showToneColors) {
 
         var e;
@@ -928,9 +977,12 @@ var zhongwenContent = {
                 hanziClass += '-small';
             }
             html += '<span class="' + hanziClass + '">' + e[2] + '</span>&nbsp;';
+
             if (e[1] != e[2]) {
                 html += '<span class="' + hanziClass + '">' + e[1] + '</span>&nbsp;';
             }
+
+	    // html += entry.cangjieStr;
 
             // Pinyin
 
@@ -940,6 +992,16 @@ var zhongwenContent = {
             }
             var p = this.pinyinAndZhuyin(e[3], showToneColors, pinyinClass);
             html += p[0];
+
+	    // Cangjie
+	    if (window.zhongwen.config.cangjie != 'off') {
+		var cjInd = (window.zhongwen.config.cangjie == 'en') ? 0 : 1;
+		html += '<br/>';
+		html += '<span>' + this.cangjieStr(entry.cangjie, e[2])[cjInd] + '</span>&nbsp;';
+		if (e[1] != e[2]) {
+		    html += '<span>' + this.cangjieStr(entry.cangjie, e[1])[cjInd] + '</span>&nbsp;';
+		}
+	    }
 
             // Zhuyin
 
@@ -1020,23 +1082,23 @@ var zhongwenContent = {
 
     pinyinAndZhuyin: function(syllables, showToneColors, pinyinClass) {
         var text = '';
-        var html = ''
+        var html = '';
         var zhuyin = '';
         var a = syllables.split(/\s/);
         for (var i = 0; i < a.length; i++) {
             var syllable = a[i];
-            
+
             // ',' in pinyin
             if (syllable == ',') {
                 html += ' ,';
                 text += ' ,';
                 continue;
             }
-            
+
             if (i > 0) {
                 html += '&nbsp;';
                 text += ' ';
-                zhuyin += '&nbsp;'
+                zhuyin += '&nbsp;';
             }
             if (syllable == 'r5') {
                 if (showToneColors) {
@@ -1066,21 +1128,21 @@ var zhongwenContent = {
             html += m[1] + t[0] + m[3];
             html += '</span>';
             text += m[1] + t[1] + m[3];
-            
+
             var zhuyinClass = 'w-zhuyin';
             if (window.zhongwen.config.fontSize == 'small') {
                 zhuyinClass += '-small';
             }
-            
-            zhuyin += '<span class="tone' + m[4] + ' ' + zhuyinClass + '">' 
-            + this.zhuyinMap[syllable.substring(0, syllable.length -1).toLowerCase()] 
+
+            zhuyin += '<span class="tone' + m[4] + ' ' + zhuyinClass + '">'
+            + this.zhuyinMap[syllable.substring(0, syllable.length -1).toLowerCase()]
             + this.zhuyinTones[syllable[syllable.length - 1]] + '</span>'
         }
         return [html, text, zhuyin]
     },
-    
+
     zhuyinTones : ['?', '', '\u02CA', '\u02C7', '\u02CB', '\u30FB'],
-    
+
     zhuyinMap : {
         'a': '\u311a',
         'ai': '\u311e',
@@ -1492,6 +1554,35 @@ var zhongwenContent = {
         'zui': '\u3117\u3128\u311f',
         'zun': '\u3117\u3128\u3123',
         'zuo': '\u3117\u3128\u311b'
+    },
+
+    cangjieMap : {
+	'A': '\u65E5', //日
+	'B': '\u6708', //月
+	'C': '\u91D1', //金
+	'D': '\u6728', //木
+	'E': '\u6c34', //水
+	'F': '\u706B', //火
+	'G': '\u571F', //土
+	'H': '\u7af9', //竹
+	'I': '\u6208', //戈
+	'J': '\u5341', //十
+	'K': '\u5927', //大
+	'L': '\u4e2d', //中
+	'M': '\u4e00', //一
+	'N': '\u5f13', //弓
+	'O': '\u4eba', //人
+	'P': '\u5fc3', //心
+	'Q': '\u624b', //手
+	'R': '\u53e3', //口
+	'S': '\u5c38', //尸
+	'T': '\u5eff', //廿
+	'U': '\u5c71', //山
+	'V': '\u5973', //女
+	'W': '\u7530', //田
+	'X': '\u96e3', //難
+	'Y': '\u535c', //卜
+	'Z': '\u91cd'  //重
     }
 }
 
@@ -1507,7 +1598,7 @@ chrome.extension.onRequest.addListener(
                 zhongwenContent.disableTab();
                 break;
             case 'showPopup':
-                if (!request.isHelp || window == window.top) { 
+                if (!request.isHelp || window == window.top) {
                     zhongwenContent.showPopup(request.text);
                 }
                 break;

@@ -17,6 +17,11 @@ chrome.extension.onRequest.addListener(function(request, sender, response) {
             var e = zhongwenMain.search(request.text);
             response(e);
             break;
+        case 'cangjieSearch':
+	    var cangjieCode = zhongwenMain.cangjieSearch(request.text);
+	    // console.log(request.text + " -> " + cangjieCode);
+            response(cangjieCode);
+            break;
         case 'open':
                         
             var tabID = zhongwenMain.tabIDs[request.tabType];

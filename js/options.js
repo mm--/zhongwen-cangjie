@@ -44,6 +44,17 @@ function loadVals() {
     else {
         document.optform.zhuyin[0].selected = true;
     }
+
+    storedValue = localStorage['cangjie'];
+    if(storedValue == 'off') {
+        document.optform.cangjie[2].selected = true;
+    }
+    else if(storedValue == 'cn') {
+        document.optform.cangjie[1].selected = true;
+    }
+    else {
+        document.optform.cangjie[0].selected = true;
+    }
 }
 
 function storeVals() {
@@ -61,6 +72,9 @@ function storeVals() {
 
     localStorage['zhuyin'] = document.optform.zhuyin.value;
     chrome.extension.getBackgroundPage().zhongwenMain.config.zhuyin = localStorage['zhuyin'];
+
+    localStorage['cangjie'] = document.optform.cangjie.value;
+    chrome.extension.getBackgroundPage().zhongwenMain.config.cangjie = localStorage['cangjie'];
 }
 
 $(function() {

@@ -52,6 +52,7 @@ zhongwenDict.prototype = {
 
     wordDict: undefined,
     wordIndex: undefined,
+    cangjieIndex: undefined,
 
     fileRead: function(url) {
         var req = new XMLHttpRequest();
@@ -83,10 +84,32 @@ zhongwenDict.prototype = {
     loadDictionary: function() {
         this.wordDict = this.fileRead(chrome.extension.getURL("data/cedict_ts.u8"));
         this.wordIndex = this.fileRead(chrome.extension.getURL("data/cedict.idx"));
+	this.cangjieIndex = this.fileRead(chrome.extension.getURL("data/cangjie5.txt"));
     },
-    
+
+    cangjieSearch: function(character) {
+	var mydict = this.cangjieIndex;
+	var start = mydict.indexOf(character);
+	var end = mydict.indexOf("\n", start);
+	var entry = mydict.substring(start, end);
+	return entry.match(/^(.),(.*)$/)[2];
+    },
+
+    chineseCharacters: function(str) {
+	var regex = /[\u3400-\u9FBF]/gi, result, chars = [];
+	while ( (result = regex.exec(str)) ) {
+	    chars.push(result[0]);
+	}
+	function onlyUnique(value, index, self) { 
+	    return self.indexOf(value) === index;
+	}
+	return chars.filter( onlyUnique );
+    },
+
     wordSearch: function(word, max) {
         var entry = { };
+	// console.log("word is ");
+	// console.log(word);
 
         var dict = this.wordDict;
         var index = this.wordIndex;
@@ -95,12 +118,14 @@ zhongwenDict.prototype = {
         var have = [];
         var count = 0;
         var maxLen = 0;
+	var chineseChars = [];
 
         if (max != null){
             maxTrim = max;
         }
 
         entry.data = [];
+	entry.cangjie = {};
 
         while (word.length > 0) {
             var ix = cache[word];
@@ -119,6 +144,7 @@ zhongwenDict.prototype = {
                 if (have[offset]) continue;
 
                 var dentry = dict.substring(offset, dict.indexOf('\n', offset));
+		chineseChars = chineseChars.concat(this.chineseCharacters(dentry));
 
                 if (count >= maxTrim) {
                     entry.more = 1;
@@ -138,6 +164,16 @@ zhongwenDict.prototype = {
         if (entry.data.length == 0) return null;
 
         entry.matchLen = maxLen;
+	entry.cangjieStr = "";
+	entry.chineseStr = "";
+	for (i in chineseChars) {
+	    var x = chineseChars[i];
+	    entry.cangjie[x] = this.cangjieSearch(x).toUpperCase();
+	    entry.cangjieStr += "" + x + ": " + entry.cangjie[x] + "\n";
+	    entry.chineseStr += x;
+	}
+	// console.log("ENTRY IS\n\n\n");
+	// console.log(entry);
         return entry;
     },
 
