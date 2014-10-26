@@ -21,7 +21,19 @@ as "A/XA".
 
 Codes can be displayed either with the English key (e.g. "ABC") or the Chinese key (e.g. "日月金"). This setting is available in the "Options" page.
 
+## Screenshots
+
+Here are some screenshots of Zhongwen-cangjie in action. Notice the
+Cangjie codes under the Chinese characters.
+
+![Example of English Cangjie codes](/images/screenshot-english.png)
+
+Codes can also be displayed using the Chinese keys, as opposed to the
+English keys.
+
+![Example of Chinese Cangjie codes](/images/screenshot-chinese.png)
+
 ## Installation
 
 To install, first clone this repository using `git clone https://github.com/mm--/zhongwen-cangjie`.
-Then use the "Load unpacked extension..." option in `chrome://extensions` and select the `zhongwen-cangjie`.
+Then use the "Load unpacked extension..." option in `chrome://extensions` and select the `zhongwen-cangjie` directory.
