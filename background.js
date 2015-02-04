@@ -123,13 +123,15 @@ initStorage("tonecolors", "yes");
 initStorage("fontSize", "small");
 initStorage("skritterTLD", "com");
 initStorage("zhuyin", "no");
+initStorage("cangjie", "en");
 
 zhongwenMain.config = {};
 zhongwenMain.config.css = localStorage["popupcolor"];
 zhongwenMain.config.tonecolors = localStorage["tonecolors"];
-zhongwenMain.config.fontSize = localStorage["fontSize"]
+zhongwenMain.config.fontSize = localStorage["fontSize"];
 zhongwenMain.config.skritterTLD = localStorage.skritterTLD;
 zhongwenMain.config.zhuyin = localStorage.zhuyin;
+zhongwenMain.config.cangjie = localStorage.cangjie;
 
 if (localStorage['enabled'] == 1) {
    zhongwenMain.loadDictionary();
